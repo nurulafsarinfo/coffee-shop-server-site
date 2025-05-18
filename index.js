@@ -25,12 +25,34 @@ const client = new MongoClient(uri, {
   }
 });
 
-
+// img 1-> https://i.ibb.co/q3qqvBYP/1.png
+//img-2- https://i.ibb.co/0pnkwnCZ/2.png
 
 
 async function run() {
     try {
         await client.connect();
+
+        const coffeeCollection = client.db('coffeeDB').collection('coffees')
+
+        app.get('/coffees', async (req, res)=> {
+            // const cursor = coffeeCollection.find();
+            // const result = await cursor.toArray();
+            const result = await coffeeCollection.find().toArray();
+            res.send(result);
+        })
+
+
+        app.post('/coffees', async (req, res)=> {
+            const newCoffee = req.body;
+            console.log(newCoffee);
+            const result = await coffeeCollection.insertOne(newCoffee);
+            res.send(result);
+        })
+
+
+
+        // This is for optional
         await client.db("admin").command({ ping: 1 });
         console.log(`You successfully connected with database port on ${port}`)
     }

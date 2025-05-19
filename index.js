@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -10,8 +10,6 @@ app.use(express.json());
 
 console.log(process.env.DB_USER)
 
-console.log("DB-USER: ", process.env.DB_USER);
-console.log("DB-PASS: ", process.env.DB_PASS);
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pebgaij.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -42,12 +40,45 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/coffees/:id', async (req, res)=>{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await coffeeCollection.findOne(query);
+            res.send(result);
+        })
+
 
         app.post('/coffees', async (req, res)=> {
             const newCoffee = req.body;
             console.log(newCoffee);
             const result = await coffeeCollection.insertOne(newCoffee);
             res.send(result);
+        })
+
+        app.put('/coffees/:id', async (req, res) =>{
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)};
+            const option = {upsert: true};
+            const updatedCoffee = req.body;
+            const updateDoc = {
+                $set: updatedCoffee
+            }
+
+            const result = await coffeeCollection.updateOne(filter,updateDoc, option);
+
+            res.send(result);
+        })
+
+        app.delete('/coffees/:id', async (req, res) => {
+            try{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await coffeeCollection.deleteOne(query);
+            res.send(result);
+            }catch(error){
+                console.error('Delete error: ', error);
+                res.status(500).send({error: 'internal server Eerror'})
+            }
         })
 
 

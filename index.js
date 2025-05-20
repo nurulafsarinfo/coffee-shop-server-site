@@ -31,7 +31,8 @@ async function run() {
     try {
         await client.connect();
 
-        const coffeeCollection = client.db('coffeeDB').collection('coffees')
+        const coffeeCollection = client.db('coffeeDB').collection('coffees');
+        const userCollection = client.db('coffeeDB').collection('users');
 
         app.get('/coffees', async (req, res)=> {
             // const cursor = coffeeCollection.find();
@@ -80,6 +81,40 @@ async function run() {
                 res.status(500).send({error: 'internal server Eerror'})
             }
         })
+
+        // user related APIs
+        app.get('/users', async(req,res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.post('/users', async(req, res) => {
+            const userProfile = req.body;
+            console.log("userProfile is-", userProfile);
+            const result = await userCollection.insertOne(userProfile);
+            res.send(result);        
+        })
+
+        app.patch('/users', async (req, res) => {
+            const {email, lastSignInTime} = req.body;
+            const filter = {email: email};
+            const updateDoc = {
+                $set: {
+                    lastSignInTime: lastSignInTime
+                }
+            }
+
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+        app.delete('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await userCollection.deleteOne(query);
+            res.send(result);
+        })
+
 
 
 
